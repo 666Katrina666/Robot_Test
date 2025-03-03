@@ -7,11 +7,11 @@ public class MinimapGenerator : MonoBehaviour
     [Header("Миникарта")]
     [SerializeField] RectTransform minimapParent;
     [SerializeField] RawImage backgroundImage;
-    [SerializeField] Vector2 mapScale = new Vector2(100f, 100f);
+    [SerializeField] Vector2 mapScale = new(100f, 100f);
 
     [Header("Префабы объектов")]
     [SerializeField] GameObject buildingIconPrefab;
-    [SerializeField] GameObject playerIconPrefab;
+    [SerializeField] GameObject robotIconPrefab;
 
     [Header("Префабы дорог")]
     [SerializeField] GameObject straightRoadPrefab;
@@ -20,7 +20,7 @@ public class MinimapGenerator : MonoBehaviour
 
     private Dictionary<RoadType, GameObject> roadPrefabs;
     private readonly Dictionary<Transform, GameObject> minimapObjects = new();
-    private Transform player;
+    private Transform robot;
 
     private void Awake()
     {
@@ -31,7 +31,7 @@ public class MinimapGenerator : MonoBehaviour
     {
         InitializeBuildings();
         InitializeRoads();
-        InitializePlayer();
+        InitializeRobot();
     }
 
     private void FixedUpdate()
@@ -53,18 +53,11 @@ public class MinimapGenerator : MonoBehaviour
             roadPrefabs[RoadType.Intersection] = intersectionPrefab;
     }
 
-    private void InitializePlayer()
+    private void InitializeRobot()
     {
-        var playerObject = FindFirstObjectByType<MovementController>();
-        if (playerObject == null)
-        {
-            Debug.LogError("Не найден PlayerController!");
-            return;
-        }
-
-        player = playerObject.transform;
-        var playerIcon = Instantiate(playerIconPrefab, minimapParent);
-        minimapObjects[player] = playerIcon;
+        robot = GameObject.FindGameObjectWithTag("Robot").transform;
+        var robotIcon = Instantiate(robotIconPrefab, minimapParent);
+        minimapObjects[robot] = robotIcon;
     }
 
     private void InitializeBuildings()
@@ -88,8 +81,7 @@ public class MinimapGenerator : MonoBehaviour
         var roads = GameObject.FindGameObjectsWithTag("Road");
         foreach (var roadObject in roads)
         {
-            var roadComponent = roadObject.GetComponent<RoadSegmentInfo>();
-            if (roadComponent != null)
+            if (roadObject.TryGetComponent<RoadSegmentInfo>(out var roadComponent))
             {
                 var roadIcon = CreateRoadIcon(roadComponent);
                 roadComponent.MinimapIcon = roadIcon;
@@ -117,12 +109,7 @@ public class MinimapGenerator : MonoBehaviour
 
     private void UpdateMinimapPositions()
     {
-        if (player == null || minimapParent == null) return;
-
-        Vector2 centerPoint = new(
-            minimapParent.rect.width / 2f,
-            minimapParent.rect.height / 2f
-        );
+        if (robot == null || minimapParent == null) return;
 
         foreach (var pair in minimapObjects)
         {
@@ -130,15 +117,15 @@ public class MinimapGenerator : MonoBehaviour
             var icon = pair.Value;
             var rectTransform = icon.GetComponent<RectTransform>();
 
-            Vector3 relativePos = worldPos - player.position;
+            Vector3 relativePos = worldPos - robot.position;
 
             Vector2 minimapPos = WorldToMinimapPosition(relativePos);
 
             rectTransform.anchoredPosition = minimapPos;
 
-            if (pair.Key == player)
+            if (pair.Key == robot)
             {
-                icon.transform.rotation = Quaternion.Euler(0, 0, -player.eulerAngles.y);
+                icon.transform.rotation = Quaternion.Euler(0, 0, -robot.eulerAngles.y);
             }
         }
     }
