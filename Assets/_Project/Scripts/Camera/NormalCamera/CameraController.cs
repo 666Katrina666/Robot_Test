@@ -1,8 +1,12 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
 
 public class CameraController : MonoBehaviour
 {
+    [Serializable]
     private enum CameraMode
     {
         TopDown,
@@ -15,12 +19,12 @@ public class CameraController : MonoBehaviour
     [SerializeField] Transform target;
 
     [Header("Top Down Settings")]
-    [SerializeField] Vector3 topDownOffset = new(0, 15, 0);
+    [SerializeField] Vector3 topDownOffset = new(0, 10, 0);
     [SerializeField] float topDownRotation = 90f;
 
     [Header("Third Person Settings")]
-    [SerializeField] Vector3 thirdPersonOffset = new(0, 3, -6);
-    [SerializeField] Vector3 thirdPersonLockOffset = new(0, 0.5f, 2);
+    [SerializeField] Vector3 thirdPersonOffset = new(0, 2, -5);
+    [SerializeField] Vector3 thirdPersonLockOffset = new(0, 2, -5);
 
     private Vector3 targetPosition;
     private Quaternion targetRotation;
